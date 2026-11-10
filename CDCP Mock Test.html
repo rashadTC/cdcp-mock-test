@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>CDCP Mock Test</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#fff;--fg:#0b1f33;--mut:#5f6f80;--card:#eaf0f6;--line:#c8d2dc;--acc:#f2a900;--ok:#1f7a55;--okbg:#d9f0e5;--bad:#b3283a;--badbg:#f8dde1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1f33;--fg:#eaf0f6;--mut:#9fb0c0;--card:#14304d;--line:#2a4a6b;--ok:#6fd3a5;--okbg:#12402f;--bad:#ff8c9a;--badbg:#4a1d27;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b1f33;--fg:#eaf0f6;--mut:#9fb0c0;--card:#14304d;--line:#2a4a6b;--ok:#6fd3a5;--okbg:#12402f;--bad:#ff8c9a;--badbg:#4a1d27;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.5 Calibri,Arial,sans-serif}
+main{max-width:760px;margin:0 auto;padding:20px 16px 40px}
+h1{font:700 26px Cambria,Georgia,serif;margin:0 0 4px}.mut{color:var(--mut);font-size:15px}
+.bar{height:8px;background:var(--card);border-radius:4px;margin:12px 0 18px;overflow:hidden}.bar i{display:block;height:100%;background:var(--acc);width:0}
+.tag{display:inline-block;background:var(--card);border-radius:12px;padding:2px 10px;font-size:14px;color:var(--mut);margin-bottom:8px}
+.q{font-weight:700;font-size:19px;margin:4px 0 14px}
+.opt{display:block;width:100%;text-align:left;background:var(--card);color:var(--fg);border:2px solid var(--line);border-radius:10px;padding:12px 14px;margin:0 0 10px;font:inherit;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--acc)}.opt:disabled{cursor:default}
+.opt.ok{background:var(--okbg);border-color:var(--ok)}.opt.bad{background:var(--badbg);border-color:var(--bad)}
+.ex{background:var(--card);border-radius:10px;padding:12px 14px;margin:6px 0 14px}.ex b{color:var(--ok)}.ex.w b{color:var(--bad)}
+.btn{background:var(--acc);color:#0b1f33;border:0;border-radius:10px;padding:12px 22px;font:700 17px inherit;cursor:pointer}
+.big{font:700 54px Cambria,Georgia,serif}.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.rv{border-top:1px solid var(--line);padding:10px 0}.rv p{margin:2px 0}
+</style></head><body><main id="app"></main>
+<script>
+// [module, question, [A,B,C,D], correctIndex, explanation]
+const Q=[
+["Module 1: Mission Critical Site","Annual revenue is $52.56M and production runs 24/7. Using the book's quick estimate, what is the value at stake per hour of downtime?",["$60,000","$6,000","$600","$525,600"],1,"Revenue / 8,760 hours = 52,560,000 / 8,760 = $6,000. It ignores seasonality, so a Business Impact Analysis is the proper method."],
+["Module 1: Mission Critical Site","What is the usual minimum server count of a hyperscale data centre?",["500","1,000","5,000","50,000"],2,"Hyperscale: 500+ cabinets, at least 3,000 m2 / 10,000 ft2, usually a minimum of 5,000 servers on a high fibre count network."],
+["Module 2: Standards","Which is the first and currently only official accredited data centre standard?",["Uptime Tier","ANSI/TIA-942","ANSI/BICSI-002","EN 50600"],1,"Only TIA has an official accreditation scheme. Uptime is a commercial guideline; BICSI and EN/ISO have no accreditation scheme."],
+["Module 2: Standards","Which TIA-942 level has dual paths for power and cooling, one active, allowing maintenance without interrupting the critical load?",["Rated-1","Rated-2","Rated-3","Rated-4"],2,"Rated-3 is concurrently maintainable. Rated-2 is a single path with N+1 components; Rated-4 has dual active paths and tolerates one fault."],
+["Module 3: Location and Building","Technically, which floor level is preferred for the data centre?",["Top floor, under the roof","Level 1","Ground floor","Basement"],1,"Avoid the floor under the roof (water leakage) and the ground floor/basement (security and flooding). The sample exam answer is Level 1."],
+["Module 3: Location and Building","Which is a classic mistake highlighted in the book?",["Separate staging area","Service corridor for air conditioners","Main switchboards inside the computer room","Separate door per restricted room"],2,"Main switchboards (and UPS/batteries) in the computer room bring EMF and explosion risk. The other options are recommended practice."],
+["Module 4: Raised Floor and Ceiling","What is the minimum raised floor height?",["20 cm","30 cm","40 cm","60 cm"],2,"At least 40 cm (16 in), preferably 60 cm (24 in)."],
+["Module 4: Raised Floor and Ceiling","Which load is potentially most damaging to a raised floor?",["Uniform distributed load","Point load","Rolling load","All are equal"],2,"Rolling loads scratch and stretch the tile in a wave effect. Protect with aluminium plates."],
+["Module 4: Raised Floor and Ceiling","Using the 1:12 ramp guideline, what ramp length is needed for a 60 cm raised floor?",["4.8 m","6.0 m","7.2 m","12 m"],2,"60 cm x 12 = 7.2 m. A 40 cm floor needs 4.8 m."],
+["Module 4: Raised Floor and Ceiling","A Signal Reference Grid (SRG) provides shielding for which type of noise?",["Low frequency","High frequency","Magnetic fields from power cables","Lightning only"],1,"The SRG gives an equipotential plane and a low-impedance path for high-frequency noise currents. Racks are bonded individually; serial bonding is not allowed."],
+["Module 5: Light","What does TIA-942 Level 3 lighting (occupied space) require?",["200 lux horizontal, 500 lux vertical","500 lux horizontal, 200 lux vertical","50-100 lux","1 lux minimum"],1,"Level 3: 500 lux in the horizontal plane and 200 lux in the vertical plane. Level 1 (unoccupied) is about 50-100 lux."],
+["Module 5: Light","Why must fluorescent lights not be connected to the UPS output?",["They need too little power","They create electronic distortion","They are too bright","Their colour affects cameras"],1,"Fluorescent lights distort the supply and would harm IT and network equipment. Connect lights to raw supply backed by the generator."],
+["Module 6: Power","A Static Transfer Switch (STS) is best described as:",["Mechanical, make-before-break, over 50 ms","Electronic, break-before-make, under 20 ms","Mechanical, break-before-make, under 20 ms","Electronic, make-before-break, 0 ms"],1,"STS is electronic and fast (<20 ms). The ATS is mechanical and slower (>50 ms). Both are break-before-make."],
+["Module 6: Power","What is the maximum tolerable load imbalance between the three phases?",["5%","10%","15%","25%"],2,"Aim for no more than 10%; if it exceeds that, the maximum tolerance is 15%."],
+["Module 6: Power","What should the ground resistance be in a data centre?",["Less than 1 Ohm, not exceeding 5 Ohms","Less than 5 Ohm, not exceeding 10 Ohms","Less than 0.1 Ohm","Less than 25 Ohms"],0,"Measured at the ground pin: < 1 Ohm, not to exceed 5 Ohms."],
+["Module 6: Power","Which Common Mode Noise value is preferred (IEEE 1100 and EN 50160 maximum)?",["Below 1 Volt","Below 3 Volt","Below 5 Volt","Below 10 Volt"],0,"Preferably < 1 V (acceptable up to 1% of phase-to-neutral); vendors generally allow < 3 V."],
+["Module 6: Power","A 100 kVA UPS has an output power factor of 0.8. How much real power can it deliver?",["125 kW","100 kW","80 kW","20 kW"],2,"W = VA x PF = 100 x 0.8 = 80 kW."],
+["Module 6: Power","Which UPS class is a good fit for mission critical data centres?",["VFD","VI","VFI","Any class with a bypass"],2,"Only VFI (Voltage and Frequency Independent, online double conversion) per IEC 62040-3 / EN 50091-3."],
+["Module 6: Power","A VRLA battery with a 10-year design life typically lasts about how long in service?",["10-12 years","7-8 years","3-4 years","15-20 years"],1,"Design life is not service life: 10-year design is about 7-8 years; 5-year design about 3-4 years."],
+["Module 6: Power","Which K-factor transformer is the most common type for data centres?",["K-1","K-4","K-13","K-50"],2,"K-13 tolerates harmonic heating by over-dimensioning; consider a 200% neutral for high harmonics."],
+["Module 7: EMF","To what magnetic field must equipment be immune per IEC 61000-4-8?",["10 mG","37.5 mG","100 mG","1 microtesla"],1,"37.5 mG. The long-term human exposure recommendation (NCRP) is < 10 mG. 10 mG = 1 microtesla."],
+["Module 8: Racks","Which rack door type provides excellent cooling of up to about 15 kW?",["Glass","Perforated (20-45% open)","Mesh (60-85% open)","Solid steel"],2,"Mesh doors: 60-85% open, up to 15 kW. Perforated: up to 5 kW. Glass relies on the top fan assembly."],
+["Module 9: Cooling","What is the ASHRAE recommended equipment inlet temperature?",["15-25 C","18-27 C","20-30 C","5-35 C"],1,"18-27 C (64.4-80.6 F). Do not confuse with the air conditioner return-air set point."],
+["Module 9: Cooling","A rule of thumb says every 10 C increase in ambient temperature does what to long-term reliability?",["Reduces it by 10%","Reduces it by 25%","Reduces it by 50%","No effect"],2,"Military and Telcordia rule of thumb: 50% reduction per 10 C (50 F)."],
+["Module 9: Cooling","Where should perimeter air conditioners be placed relative to the hot aisle?",["Parallel to it","Perpendicular to it","At the far end of the room only","Above it"],1,"Perpendicular placement gives fast hot-air return and more even underfloor pressure."],
+["Module 9: Cooling","Which cooling solution is recommended to have water leak detection?",["Cold aisle containment","Rear door heat exchanger (chilled water)","Overhead ducting","Perforated tiles"],1,"Rear door heat exchangers (often 15 kW+) use chilled water, so a leak detection system is strongly recommended."],
+["Module 11: Network","What is the maximum total copper channel length (solid up to 90 m plus patch cords up to 10 m)?",["90 m","100 m","150 m","295 m"],1,"Total channel = 100 m (328 ft); the permanent link is at most 90 m and patch cords under 10 m."],
+["Module 12: Fire","Cylinders must be in a room 20-30 m away from the computer room. Which agent suits?",["FM200","Novec 1230","Inergen (IG-541)","Halon 1301"],2,"FM200 and Novec are low pressure, so cylinders must be close by. Inergen is high pressure: cylinders can be far away, but it needs about 10x the storage. Halon is banned in most countries."],
+["Module 12: Fire","Hypoxic air fire prevention keeps oxygen at about what level?",["21%","18%","15%","10%"],2,"About 15%, because fire needs 16% or more. It is prevention, not suppression."],
+["Module 12: Fire","How much more sensitive is VESDA/HSSD than a standard smoke detector?",["About 10 times","About 100 times","As much as 1,000 times","Equal"],2,"Air-sampling HSSD can be up to 1,000 times more sensitive."],
+["Module 13: Security","How is risk calculated in physical security?",["Impact + probability","Impact x probability","Threat / control","Probability / impact"],1,"Risk = impact x probability."],
+["Module 14: Auxiliary","With little budget, which monitoring system should be purchased?",["BMS","DCIM","NMS","EMS"],3,"The EMS is relatively inexpensive, low-level monitoring only. BMS and DCIM cost more."]
+];
+const MN=["","Module 1: Mission Critical Site","Module 2: Standards","Module 3: Location and Building","Module 4: Raised Floor and Ceiling","Module 5: Light","Module 6: Power","Module 7: EMF","Module 8: Racks","Module 9: Cooling","Module 10: Water","Module 11: Network","Module 12: Fire","Module 13: Security","Module 14: Auxiliary"];
+// [module no, question, options split by |, correct index, explanation]
+[
+[1,"Which cloud model has the CSP supply hardware only?","SaaS|PaaS|IaaS|Edge",2,"In IaaS the customer installs OS, middleware and applications."],
+[1,"Edge data centres mainly aim to minimise:","Cost|Latency|Floor area|Cooling",1,"Data is processed near the source for minimal latency."],
+[1,"The two main causes of downtime are human error and:","Hardware or system failure|Lightning|Fibre cuts|Fire",0,"Hardware failure is the other main cause, sometimes itself human-caused."],
+[1,"A data centre is typically built to last:","1-2 years|5 to 15-20 years|50 years|100 years",1,"Nobody can predict ICT needs over that span, so monitor limits pro-actively."],
+[1,"In co-location, who supplies servers and storage?","Provider|Customer|Utility|Both",1,"The provider supplies building, cooling, power, bandwidth, security, fire safety."],
+[2,"Uptime Tier is best described as:","An ISO standard|A guideline from a commercial body|An ANSI standard|A European norm",1,"Uptime is not an accredited SDO."],
+[2,"BICSI-002 conformity classes are:","Tier I-IV|Rated 1-4|Class F0-F4|Class 1-4",2,"BICSI has five classes starting at F0."],
+[2,"Which TIA-942 level has N+1 on a single path?","Rated-1|Rated-2|Rated-3|Rated-4",1,"Rated-2 = redundant components, single path."],
+[2,"If national and international standards differ, follow:","International|National|The cheaper|The vendor",1,"National standards always overrule international ones."],
+[2,"Uptime Tier covers only:","Electrical and mechanical|All eight areas|Security|Telecom",0,"TIA, BICSI and EN/ISO cover the full scope."],
+[3,"Which neighbour should be avoided because of its fields?","Power station|Light industry|Urban area|Public road",0,"Power stations emit magnetic and electrical fields."],
+[3,"Below what slab-to-slab height does raised floor plus ceiling get hard?","2.4 m|3.0 m|3.60 m|5.0 m",2,"Below 3.60 m cooling voids are hard to fit (ideal 3.80 m)."],
+[3,"Where must equipment never be unpacked?","Holding area|The data centre|Loading bay|Staging area",1,"Unpacking spreads dust."],
+[3,"Flooded (vented) cell batteries must be:","In the computer room|In a separate vented room|Under the raised floor|In staging",1,"They emit explosive hydrogen."],
+[3,"Who should never sit in the computer room?","NOC engineers|Cleaners|Auditors|Fire marshals",0,"Cold, humid, unsafe; work remotely."],
+[4,"Zinc whiskers come from:","Galvanized tiles|HPL|Carbon fibre|Aluminium plates",0,"Fine metal particles that short circuits."],
+[4,"A 'point' for point load is, in most standards:","1 mm2|25 mm2|1 cm2|10 cm2",1,"25 mm2 (0.0387 in2)."],
+[4,"EN 12825 uniform load requirement:","1,220 kg/m2|500 kg/m2|2,500 kg/m2|250 kg/m2",0,"Or 454 kg on 6.5 cm2, max deflection 2.5 mm."],
+[4,"UK-PSA Extra Heavy must also sustain 11 kN on how many points?","1|2|4|8",2,"Four points of 25 mm2 on a 200 x 200 mm square."],
+[4,"Minimum clearance below sprinkler/gas nozzles:","10 cm|About 45 cm|1 m|2 m",1,"About 45 cm (1.5 ft) so agent can disperse."],
+[4,"Minimum raised floor to suspended ceiling for 42U racks:","2.0 m|2.60 m|3.80 m|3.0 m",1,"2.60 m (8.5 ft)."],
+[4,"Racks must be bonded to the SRG:","In series|Individually|Only the first|Not required",1,"Serial bonding is not allowed."],
+[5,"Recommended minimum / recommended lux for rooms:","200 / 300|500 / 600|150 / 200|1000 / 1200",1,"Corridors 200/300; service areas 150/200."],
+[5,"Lux is measured at what height?","Floor|1 m above raised floor|Ceiling|2 m",1,"1 m (3.3 ft) above the raised floor."],
+[5,"Emergency lighting (EN 1838) minimum / recommended lux:","1 / 15|5 / 50|10 / 100|15 / 150",0,"Very little, so do more than regulation."],
+[5,"Standard for centralized emergency power supply:","EN 50171|EN 12464|DIN 5035|BS 476",0,"EPS is easier to maintain than standalone fixtures."],
+[6,"ATS transfer time is:","< 20 ms|> 50 ms|0 ms|1 s",1,"Mechanical and slow; the UPS bridges it."],
+[6,"Three-phase supply in the building has how many wires?","3|4|5|6",2,"Three phases, neutral and ground."],
+[6,"THDi of a 6-pulse rectifier is typically:","3-5%|12%|30%|60%",2,"12-pulse about 12%; IGBT 3-5%."],
+[6,"Voltage tolerance per the power quality guideline:","+/-5%|+/-10%|+/-20%|+/-1%",1,"Frequency +/-1%."],
+[6,"Real power usage versus nameplate is typically:","Equal|20-40% less|50% more|10% more",1,"Label shows absolute maximum."],
+[6,"Low-density data centre power is about:","500 W/m2|1,500 W/m2|3,000 W/m2|5,000 W/m2",0,"Medium 1,000-1,500; high 2,000-2,500; extreme >3,000."],
+[6,"Generator free-running tests are at least:","Weekly|Monthly|Annually|Every 5 years",1,"Load tests at least quarterly; fuel tested annually."],
+[6,"A dynamic (rotary) UPS needs batteries for:","All storage|Only the starter|Nothing at all|Lithium bank",1,"Energy is stored kinetically in the flywheel."],
+[6,"Offline (VFD) UPS transfer time is up to:","0 ms|12-14 ms|100 ms|1 s",1,"VI is 2-4 ms; VFI has none."],
+[6,"Most reliable parallel UPS configuration:","Hot-standby|Parallel redundant|Isolated parallel redundant|Single UPS",2,"Fully standalone units; no shared bypass SPOF."],
+[6,"Flooded cell battery typical life:","3-4 years|15-20 years|1 year|40 years",1,"Used mainly at 500 kVA and above."],
+[6,"Ni-Cd batteries cost about how much versus SLA?","Same|4-6 times|Half|10% more",1,"But last about 20 years."],
+[6,"SLA recharge after full discharge takes:","30 min|8-12 hours|1 hour|1 week",1,"Slow recharging is a drawback."],
+[6,"The first IP digit is protection against:","Water|Solid objects|Heat|EMF",1,"Second digit is liquids; UPS is commonly IP20/21."],
+[6,"Distribution board form that separates terminations too:","Form 1|Form 2|Form 3|Form 4",3,"Form 3 does not separate terminations."],
+[6,"Thermographic scanning is done:","Daily|Annually|Every 10 years|Never",1,"Finds hot, high-resistance connections."],
+[6,"Renewable Energy Factor is:","Edc/Eren|Eren/Edc|Eren x Edc|Eren - Edc",1,"REF 0.5 = 50% renewable."],
+[7,"10 milligauss equals:","1 microtesla|1 tesla|10 microtesla|0.1 microtesla",0,"Conversion given in the book."],
+[7,"Shielded twisted pair is aimed at:","Low-frequency EMF|High-frequency alien crosstalk|Lightning|HEMP",1,"It does not protect against EMF."],
+[7,"Long-term human exposure recommendation:","< 10 mG|< 100 mG|< 1 G|< 37.5 mG",0,"37.5 mG is equipment immunity."],
+[7,"Electric field is measured in:","V/m|Gauss|Tesla|Ohm",0,"Magnetic fields use gauss or tesla."],
+[8,"1U equals:","1.75 in (44.45 mm)|1 in|2 in|19 in",0,"Rack unit height."],
+[8,"Standard 19-inch rack outside width:","600 mm|800 mm|1000 mm|450 mm",0,"Matches floor tiles; 800 mm is the wide rack."],
+[8,"Perforated door opening is typically:","20-45%|60-85%|5-10%|90-100%",0,"Mesh is 60-85%."],
+[8,"Top fan assemblies should only be used with:","Glass door racks|Mesh racks|Perforated racks|Two-post racks",0,"Glass doors rely on them."],
+[9,"Cooling share of data centre power (traditional):","About 30%|5%|60%|1%",0,"ASHRAE chart: IT 52%, cooling 30%."],
+[9,"1 Ton of cooling equals:","12,000 BTU|3,412 BTU|746 BTU|1,000 BTU",0,"1 W = 3.41 BTU."],
+[9,"1 horsepower equals:","746 W|100 W|1 kW|3.41 W",0,"Use kW as the single unit."],
+[9,"ICT equipment generates:","Sensible heat only|Latent only|Both|Neither",0,"No moisture; humans give latent heat."],
+[9,"The refrigerant R22 is being:","Phased out|Made mandatory|Unregulated|Invented",0,"R410A is the alternative."],
+[9,"Work in a hot aisle is banned in some countries at:","25 C|30 C|40 C|60 C",2,"40 C and above."],
+[9,"Two-phase immersion coolant boils at about:","56 C|100 C|200 C|0 C",0,"Versus 100 C for water."],
+[9,"Rear door heat exchangers are often rated:","15 kW and above|1 kW|0.5 kW|5 W",0,"Chilled water based."],
+[9,"Self-contained rack cooling limit:","18-35 kW per rack|1-2 kW|100 kW|0.1 kW",0,"Fails fast if cooling stops."],
+[11,"Cat6A supports:","1 Gbps|10 Gbps|100 Mb/s|100 Gbps",1,"Cat6 is 1 Gbps."],
+[11,"Cat8 two-connector channel maximum:","30 m|90 m|100 m|10 m",0,"Shielded only; for 25/40GBASE-T."],
+[11,"Single-mode fibre size:","62.5/125|50/125|8.3/125|9/50",2,"Core/cladding in microns."],
+[11,"Connector for 40 Gb/s and higher:","ST|SC|MPO|BNC",2,"Multi-fibre push-on."],
+[11,"Rated-3 secondary entrance room separation:","2 m|20 m|200 m|None",1,"At least 20 m, separate fire zones."],
+[12,"FM200 is which agent?","HFC-227|IG-541|CO2|Halon",0,"Inergen is IG-541."],
+[12,"Novec 1230 atmospheric life:","About 5 days|31-42 years|1,000 years|1 hour",0,"FM200 is 31-42 years."],
+[12,"Sprinkler heads typically activate at:","70 C|20 C|150 C|40 C",0,"Concealed cover plate drops at 57 C."],
+[12,"Fire class for energised electrical equipment:","A|B|C|D",2,"Some countries use E."],
+[12,"Escape routes should not take more than:","20 seconds|2 minutes|5 minutes|1 hour",0,"To reach the exit door."],
+[12,"Water mist droplet size:","100-120 micron|1 mm|1 cm|10 nm",0,"Uses under 10% of sprinkler water."],
+[13,"Barbed wire on fences should be:","Slanted 45 degrees outward|Vertical|Slanted inward|Flat",0,"Deters intruders."],
+[13,"The CCTV recorder should be:","In the computer room|In a secure area on UPS|On the roof|Unpowered",1,"Avoid the computer room."],
+[14,"Which system can control devices as well as monitor?","BMS|EMS|Neither|Both only monitor",0,"EMS is monitor-only."]
+].forEach(r=>Q.push([MN[r[0]],r[1],r[2].split("|"),r[3],r[4]]));
+const app=document.getElementById("app");let i=0,score=0,wrong=[],done=false;
+function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+function show(){
+ if(i>=Q.length)return result();
+ const q=Q[i];
+ app.innerHTML=`<h1>CDCP Mock Test</h1><div class="mut">Question ${i+1} of ${Q.length} &middot; Score ${score}</div><div class="bar"><i style="width:${i/Q.length*100}%"></i></div>
+ <span class="tag">${esc(q[0])}</span><div class="q">${esc(q[1])}</div><div id="o"></div><div id="x"></div>`;
+ q[2].forEach((t,k)=>{const b=document.createElement("button");b.className="opt";b.innerHTML="<b>"+"ABCD"[k]+".</b> "+esc(t);b.onclick=()=>pick(k);document.getElementById("o").appendChild(b)});
+}
+function pick(k){
+ const q=Q[i],ok=k===q[3],bs=document.querySelectorAll(".opt");
+ bs.forEach((b,n)=>{b.disabled=true;if(n===q[3])b.classList.add("ok");else if(n===k)b.classList.add("bad")});
+ if(ok)score++;else wrong.push(i);
+ document.getElementById("x").innerHTML=`<div class="ex ${ok?"":"w"}"><b>${ok?"Correct.":"Incorrect."}</b> The right answer is <b>${"ABCD"[q[3]]}. ${esc(q[2][q[3]])}</b><p>${esc(q[4])}</p></div><button class="btn" id="n">${i+1<Q.length?"Next question":"See results"}</button>`;
+ document.getElementById("n").onclick=()=>{i++;show()};
+}
+function result(){
+ const p=Math.round(score/Q.length*100),pass=p>=67.5;
+ app.innerHTML=`<h1>Results</h1><div class="big">${score} / ${Q.length}</div><p><b>${p}%</b> &middot; ${pass?"Above":"Below"} the 67.5% pass mark (27 of 40 on the real exam).</p>
+ <button class="btn" onclick="i=0;score=0;wrong=[];show()">Retake test</button><h2>Questions to review</h2>`+
+ (wrong.length?wrong.map(n=>`<div class="rv"><p><b>${n+1}. ${esc(Q[n][1])}</b></p><p>Answer: <b>${"ABCD"[Q[n][3]]}. ${esc(Q[n][2][Q[n][3]])}</b></p><p class="mut">${esc(Q[n][4])}</p></div>`).join(""):"<p>None. Perfect score.</p>");
+}
+show();
+</script></body></html>
